@@ -110,7 +110,7 @@
         return;
       }
 
-     loadData(data => {
+      loadData(data => {
         data.push({ date, desc, type, amount });
         saveData(data, () => {
           renderTable();
@@ -121,22 +121,23 @@
     }
 
     function renderTable() {
-      const data = loadData();
       const filterDate = document.getElementById("filterDate").value;
       const table = document.getElementById("dataTable");
       table.innerHTML = "";
-
-      data.filter(entry => !filterDate || entry.date === filterDate)
-          .forEach(entry => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${entry.date}</td>
-              <td>${entry.desc}</td>
-              <td>${entry.type === "income" ? "আয়" : "ব্যয়"}</td>
-              <td>${entry.amount.toFixed(2)}৳</td>
-            `;
-            table.appendChild(row);
-          });
+ 
+      loadData(data => {
+        data.filter(entry => !filterDate || entry.date === filterDate)
+            .forEach(entry => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${entry.date}</td>
+                <td>${entry.desc}</td>
+                <td>${entry.type === "income" ? "আয়" : "ব্যয়"}</td>
+                <td>${entry.amount.toFixed(2)}৳</td>
+              `;
+              table.appendChild(row);
+            });
+      });
     }
 
     function clearFilter() {
@@ -149,8 +150,6 @@
       document.getElementById("date").value = today;
       renderTable();
     };
-	
-	
   </script>
 </body>
 </html>
