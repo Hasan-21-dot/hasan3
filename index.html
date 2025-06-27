@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>আমার আয়-ব্যয় হিসাব</title>
+  <style>
+    body {
+      font-family: "SolaimanLipi", sans-serif;
+      margin: 40px;
+      background: #f0f9ff;
+    }
+    h1 {
+      text-align: center;
+      color: #0a558c;
+    }
+    .entry {
+      margin-bottom: 10px;
+    }
+    input, select {
+      padding: 6px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #d0e7ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧾 আমার আয়-ব্যয় হিসাব</h1>
+  <div class="entry">
+    <label>তারিখ:</label>
+    <input type="date" id="date" value="">
+    <label>বিবরণ:</label>
+    <input type="text" id="desc">
+    <label>ধরন:</label>
+    <select id="type">
+      <option value="income">আয়</option>
+      <option value="expense">ব্যয়</option>
+    </select>
+    <label>টাকা:</label>
+    <input type="number" id="amount">
+    <button onclick="addEntry()">✔️ সংযুক্ত করুন</button>
+  </div>
+
+  <h2>📅 হিসাব তালিকা</h2>
+  <label>তারিখ বাছাই:</label>
+  <input type="date" id="filterDate" onchange="renderTable()">
+  <button onclick="clearFilter()">সব দেখাও</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>তারিখ</th>
+        <th>বিবরণ</th>
+        <th>ধরন</th>
+        <th>টাকা</th>
+      </tr>
+    </thead>
+    <tbody id="dataTable"></tbody>
+  </table> 
+
+  <!-- Firebase compat version -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBi0RKpFLcUCxNgrsu9ySmrdGF_JH-C1MY",
+      authDomain: "my-finance-tracker-87674.firebaseapp.com",
+      databaseURL: "https://my-finance-tracker-87674-default-rtdb.firebaseio.com",
+      projectId: "my-finance-tracker-87674",
+      storageBucket: "my-finance-tracker-87674.firebasestorage.app",
+      messagingSenderId: "418706930100",
+      appId: "1:418706930100:web:1da92ec998ae2bdfab5ae1",
+      measurementId: "G-0HY54N5M2F"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function loadData(callback) {
+      db.ref("entries").once("value").then(snapshot => {
+        callback(snapshot.val() || []);
+      });
+    }
+
+    function saveData(data, callback) {
+      db.ref("entries").set(data, callback);
+    }
+
+    function addEntry() {
+      const date = document.getElementById("date").value;
+      const desc = document.getElementById("desc").value;
+      const type = document.getElementById("type").value;
+      const amount = parseFloat(document.getElementById("amount").value);
+
+      if (!date || !desc || isNaN(amount)) {
+        alert("সব ঘর পূরণ করুন");
+        return;
+      }
+
+     loadData(data => {
+        data.push({ date, desc, type, amount });
+        saveData(data, () => {
+          renderTable();
+          document.getElementById("desc").value = "";
+          document.getElementById("amount").value = "";
+        });
+      });
+    }
+
+    function renderTable() {
+      const data = loadData();
+      const filterDate = document.getElementById("filterDate").value;
+      const table = document.getElementById("dataTable");
+      table.innerHTML = "";
+
+      data.filter(entry => !filterDate || entry.date === filterDate)
+          .forEach(entry => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${entry.date}</td>
+              <td>${entry.desc}</td>
+              <td>${entry.type === "income" ? "আয়" : "ব্যয়"}</td>
+              <td>${entry.amount.toFixed(2)}৳</td>
+            `;
+            table.appendChild(row);
+          });
+    }
+
+    function clearFilter() {
+      document.getElementById("filterDate").value = "";
+      renderTable();
+    }
+
+    window.onload = () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("date").value = today;
+      renderTable();
+    };
+	
+	
+  </script>
+</body>
+</html>
